@@ -2,8 +2,8 @@
 -- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
--- Servidor: 127.0.0.1:3307
--- Tiempo de generación: 05-03-2026 a las 22:48:54
+-- Servidor: 127.0.0.1:3306
+-- Tiempo de generación: 09-03-2026 a las 17:00:31
 -- Versión del servidor: 10.4.32-MariaDB
 -- Versión de PHP: 8.2.12
 
@@ -18,7 +18,7 @@ SET time_zone = "+00:00";
 /*!40101 SET NAMES utf8mb4 */;
 
 --
--- Base de datos: `bd_libros`
+-- Base de datos: `db_libros`
 --
 
 DELIMITER $$
@@ -107,6 +107,59 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Estructura de tabla para la tabla `aprendiz`
+--
+
+CREATE TABLE `aprendiz` (
+  `ID_APRENDIZ` int(11) NOT NULL,
+  `NOM_APRENDIZ` varchar(50) NOT NULL,
+  `APE_APRENDIZ` varchar(50) NOT NULL,
+  `CORREO_APRENDIZ` varchar(50) NOT NULL,
+  `UBICACION_APRENDIZ` varchar(70) NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `aprendiz`
+--
+
+INSERT INTO `aprendiz` (`ID_APRENDIZ`, `NOM_APRENDIZ`, `APE_APRENDIZ`, `CORREO_APRENDIZ`, `UBICACION_APRENDIZ`) VALUES
+(1, 'Juan', 'Pérez', 'juan.perez@example.com', 'Ciudad A'),
+(2, 'María', 'Gómez', 'maria.gomez@example.com', 'Ciudad B'),
+(3, 'Pedro', 'López', 'pedro.lopez@example.com', 'Ciudad C'),
+(4, 'Laura', 'Torres', 'laura.torres@example.com', 'Ciudad A'),
+(5, 'Carlos', 'Rodríguez', 'carlos.rodriguez@example.com', 'Ciudad B');
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `audi_autor`
+--
+
+CREATE TABLE `audi_autor` (
+  `ID_AUDI_AUTOR` int(11) NOT NULL,
+  `AUT_CODIGO_AUDI` int(11) DEFAULT NULL,
+  `AUT_APELLIDO_ANTERIOR` varchar(45) DEFAULT NULL,
+  `AUT_NACIMIENTO_ANTERIOR` date DEFAULT NULL,
+  `AUT_MUERTE_ANTERIOR` date DEFAULT NULL,
+  `AUT_APELLIDO_NUEVO` varchar(45) DEFAULT NULL,
+  `AUT_NACIMIENTO_NUEVO` date DEFAULT NULL,
+  `AUT_MUERTE_NUEVO` date DEFAULT NULL,
+  `FECHA_MODIFICACION` datetime DEFAULT NULL,
+  `USUARIO` varchar(10) DEFAULT NULL,
+  `ACCION` varchar(45) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+--
+-- Volcado de datos para la tabla `audi_autor`
+--
+
+INSERT INTO `audi_autor` (`ID_AUDI_AUTOR`, `AUT_CODIGO_AUDI`, `AUT_APELLIDO_ANTERIOR`, `AUT_NACIMIENTO_ANTERIOR`, `AUT_MUERTE_ANTERIOR`, `AUT_APELLIDO_NUEVO`, `AUT_NACIMIENTO_NUEVO`, `AUT_MUERTE_NUEVO`, `FECHA_MODIFICACION`, `USUARIO`, `ACCION`) VALUES
+(1, 345, 'Wilson ', '0000-00-00', '1975-08-29', 'Ramirez', '1972-11-13', '2001-03-18', '2026-03-09 09:34:56', 'root@local', 'ACTUALIZACIÓN'),
+(2, 521, 'Muñoz', '1975-08-14', '2018-05-08', NULL, NULL, NULL, '2026-03-09 10:05:41', 'root@local', 'ELIMINACIÓN');
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `audi_socio`
 --
 
@@ -178,7 +231,7 @@ INSERT INTO `autor` (`AUT_CODIGO`, `AUT_APELLIDO`, `AUT_NACIMIENTO`, `AUTO_MUERT
 (98, 'Smith ', '1974-12-21', '2018-07-21'),
 (123, 'Taylor ', '1980-04-15', '0000-00-00'),
 (234, 'Medina ', '1977-06-21', '2005-09-12'),
-(345, 'Wilson ', '1975-08-29', '0000-00-00'),
+(345, 'Ramirez', '1972-11-13', '2001-03-18'),
 (432, 'Miller ', '1981-10-26', '0000-00-00'),
 (456, 'García ', '1978-09-27', '2021-12-09'),
 (567, 'Davis ', '1983-03-04', '2010-03-28'),
@@ -187,6 +240,65 @@ INSERT INTO `autor` (`AUT_CODIGO`, `AUT_APELLIDO`, `AUT_NACIMIENTO`, `AUTO_MUERT
 (789, 'Rodríguez ', '1985-12-10', '0000-00-00'),
 (890, 'Brown ', '1982-11-17', '0000-00-00'),
 (901, 'Soto ', '1979-05-13', '2015-11-05');
+
+--
+-- Disparadores `autor`
+--
+DELIMITER $$
+CREATE TRIGGER `DELETE_AUTOR` AFTER DELETE ON `autor` FOR EACH ROW BEGIN
+	INSERT INTO AUDI_AUTOR(
+	AUT_CODIGO_AUDI,
+    AUT_APELLIDO_ANTERIOR,
+    AUT_NACIMIENTO_ANTERIOR,
+    AUT_MUERTE_ANTERIOR,
+    AUT_APELLIDO_NUEVO,
+    AUT_NACIMIENTO_NUEVO,
+    AUT_MUERTE_NUEVO,
+    FECHA_MODIFICACION,
+    USUARIO,
+    ACCION)
+VALUES(
+	OLD.AUT_CODIGO,
+    OLD.AUT_APELLIDO,
+    OLD.AUT_NACIMIENTO,
+    OLD.AUTO_MUERTE,
+    NULL,
+    NULL,
+    NULL,
+  	NOW(),
+    CURRENT_USER(),
+    'ELIMINACIÓN');
+    
+END
+$$
+DELIMITER ;
+DELIMITER $$
+CREATE TRIGGER `UPDATE_AUTOR` BEFORE UPDATE ON `autor` FOR EACH ROW BEGIN 
+INSERT INTO AUDI_AUTOR(
+    AUT_CODIGO_AUDI,
+    AUT_APELLIDO_ANTERIOR,
+    AUT_NACIMIENTO_ANTERIOR,
+    AUT_MUERTE_ANTERIOR,
+    AUT_APELLIDO_NUEVO,
+    AUT_NACIMIENTO_NUEVO,
+    AUT_MUERTE_NUEVO,
+    FECHA_MODIFICACION,
+    USUARIO,
+    ACCION)
+VALUES(
+	NEW.AUT_CODIGO,
+    OLD.AUT_APELLIDO,
+    OLD.AUTO_MUERTE,
+    OLD.AUT_NACIMIENTO,
+    NEW.AUT_APELLIDO,
+    NEW.AUT_NACIMIENTO,
+    NEW.AUTO_MUERTE,
+  	NOW(),
+    CURRENT_USER(),
+    'ACTUALIZACIÓN');
+END
+$$
+DELIMITER ;
 
 -- --------------------------------------------------------
 
@@ -274,6 +386,26 @@ INSERT INTO `libro` (`LIB_ISBN`, `LIB_TITULO`, `LIB_GENERO`, `LIB_NUMERO_PAGINA`
 -- Disparadores `libro`
 --
 DELIMITER $$
+CREATE TRIGGER `DELETE_LIBRO` AFTER DELETE ON `libro` FOR EACH ROW BEGIN
+	INSERT INTO AUD_LIBROS(
+	LIB_ISBN_AUDI,
+	LIB_TITULO_NUEVO,
+	LIB_GENERO_NUEVO,
+	LIB_NUMERO_PAGINAS_NUEVO,
+	LIB_DIAS_PRESTAMO,
+	FECHA_MODIFICACION)
+	VALUES(
+	OLD.LIB_ISBN,
+	OLD.LIB_TITULO,
+	OLD.LIB_GENERO,
+	OLD.LIB_NUMERO_PAGINA,
+    OLD.LIB_DIAS_PRESTAMO, NOW()
+);
+
+END
+$$
+DELIMITER ;
+DELIMITER $$
 CREATE TRIGGER `INSERT_LIBRO` AFTER INSERT ON `libro` FOR EACH ROW BEGIN
     INSERT INTO aud_libros(
         LIB_ISBN_AUDI,
@@ -316,6 +448,20 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Estructura Stand-in para la vista `libro_cliente`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `libro_cliente` (
+`NOM_CLIENTE` varchar(20)
+,`LIB_TITULO` varchar(255)
+,`LIB_DIAS_PRESTAMO` tinyint(4)
+,`FECHA_PRESTAMO` date
+,`FECHA_DEVOLUCION` date
+);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `log_cliente`
 --
 
@@ -329,6 +475,34 @@ CREATE TABLE `log_cliente` (
   `FECHA_MODIFICACION` datetime DEFAULT NULL,
   `USUARIO_MODIFICACION` varchar(20) DEFAULT NULL,
   `COMENTARIO` varchar(45) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura Stand-in para la vista `nombre_correo_aprendiz`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `nombre_correo_aprendiz` (
+`NOM_APRENDIZ` varchar(50)
+,`CORREO_APRENDIZ` varchar(50)
+);
+
+-- --------------------------------------------------------
+
+--
+-- Estructura de tabla para la tabla `posiciones`
+--
+
+CREATE TABLE `posiciones` (
+  `id` int(11) NOT NULL,
+  `grupo` char(10) NOT NULL,
+  `pais` varchar(45) NOT NULL,
+  `jugados` int(11) NOT NULL,
+  `ganados` int(11) NOT NULL,
+  `empatados` int(11) NOT NULL,
+  `perdidos` int(11) NOT NULL,
+  `puntos` int(11) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
@@ -451,6 +625,18 @@ DELIMITER ;
 -- --------------------------------------------------------
 
 --
+-- Estructura Stand-in para la vista `tipo_autor`
+-- (Véase abajo para la vista actual)
+--
+CREATE TABLE `tipo_autor` (
+`AUT_CODIGO` int(11)
+,`AUT_APELLIDO` varchar(45)
+,`TIPO_AUTOR` varchar(20)
+);
+
+-- --------------------------------------------------------
+
+--
 -- Estructura de tabla para la tabla `tipo_autores`
 --
 
@@ -496,9 +682,48 @@ INSERT INTO `tipo_autores` (`COPIA_ISBN`, `COPIA_COD_AUTOR`, `TIPO_AUTOR`) VALUE
 (7777777777, 765, 'Autor'),
 (9999999999, 98, 'Autor');
 
+-- --------------------------------------------------------
+
+--
+-- Estructura para la vista `libro_cliente`
+--
+DROP TABLE IF EXISTS `libro_cliente`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `libro_cliente`  AS SELECT `cliente`.`NOM_CLIENTE` AS `NOM_CLIENTE`, `libro`.`LIB_TITULO` AS `LIB_TITULO`, `libro`.`LIB_DIAS_PRESTAMO` AS `LIB_DIAS_PRESTAMO`, `prestamo`.`FECHA_PRESTAMO` AS `FECHA_PRESTAMO`, `prestamo`.`FECHA_DEVOLUCION` AS `FECHA_DEVOLUCION` FROM ((`cliente` join `libro`) join `prestamo`) ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura para la vista `nombre_correo_aprendiz`
+--
+DROP TABLE IF EXISTS `nombre_correo_aprendiz`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `nombre_correo_aprendiz`  AS SELECT `aprendiz`.`NOM_APRENDIZ` AS `NOM_APRENDIZ`, `aprendiz`.`CORREO_APRENDIZ` AS `CORREO_APRENDIZ` FROM `aprendiz` ORDER BY `aprendiz`.`NOM_APRENDIZ` ASC ;
+
+-- --------------------------------------------------------
+
+--
+-- Estructura para la vista `tipo_autor`
+--
+DROP TABLE IF EXISTS `tipo_autor`;
+
+CREATE ALGORITHM=UNDEFINED DEFINER=`root`@`localhost` SQL SECURITY DEFINER VIEW `tipo_autor`  AS SELECT `autor`.`AUT_CODIGO` AS `AUT_CODIGO`, `autor`.`AUT_APELLIDO` AS `AUT_APELLIDO`, `tipo_autores`.`TIPO_AUTOR` AS `TIPO_AUTOR` FROM (`autor` join `tipo_autores`) ;
+
 --
 -- Índices para tablas volcadas
 --
+
+--
+-- Indices de la tabla `aprendiz`
+--
+ALTER TABLE `aprendiz`
+  ADD PRIMARY KEY (`ID_APRENDIZ`);
+
+--
+-- Indices de la tabla `audi_autor`
+--
+ALTER TABLE `audi_autor`
+  ADD PRIMARY KEY (`ID_AUDI_AUTOR`);
 
 --
 -- Indices de la tabla `audi_socio`
@@ -528,13 +753,22 @@ ALTER TABLE `cliente`
 -- Indices de la tabla `libro`
 --
 ALTER TABLE `libro`
-  ADD PRIMARY KEY (`LIB_ISBN`);
+  ADD PRIMARY KEY (`LIB_ISBN`),
+  ADD KEY `idx_libro` (`LIB_TITULO`);
 
 --
 -- Indices de la tabla `log_cliente`
 --
 ALTER TABLE `log_cliente`
   ADD PRIMARY KEY (`ID_LOG`);
+
+--
+-- Indices de la tabla `posiciones`
+--
+ALTER TABLE `posiciones`
+  ADD PRIMARY KEY (`id`),
+  ADD UNIQUE KEY `pais` (`pais`),
+  ADD KEY `grupo` (`grupo`);
 
 --
 -- Indices de la tabla `prestamo`
@@ -562,6 +796,12 @@ ALTER TABLE `tipo_autores`
 --
 
 --
+-- AUTO_INCREMENT de la tabla `audi_autor`
+--
+ALTER TABLE `audi_autor`
+  MODIFY `ID_AUDI_AUTOR` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=3;
+
+--
 -- AUTO_INCREMENT de la tabla `audi_socio`
 --
 ALTER TABLE `audi_socio`
@@ -586,6 +826,12 @@ ALTER TABLE `log_cliente`
   MODIFY `ID_LOG` int(11) NOT NULL AUTO_INCREMENT;
 
 --
+-- AUTO_INCREMENT de la tabla `posiciones`
+--
+ALTER TABLE `posiciones`
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT;
+
+--
 -- Restricciones para tablas volcadas
 --
 
@@ -602,6 +848,18 @@ ALTER TABLE `prestamo`
 ALTER TABLE `tipo_autores`
   ADD CONSTRAINT `tipo_autores_ibfk_1` FOREIGN KEY (`COPIA_ISBN`) REFERENCES `libro` (`LIB_ISBN`),
   ADD CONSTRAINT `tipo_autores_ibfk_2` FOREIGN KEY (`COPIA_COD_AUTOR`) REFERENCES `autor` (`AUT_CODIGO`);
+
+DELIMITER $$
+--
+-- Eventos
+--
+CREATE DEFINER=`root`@`localhost` EVENT `anual_eliminar_prestamos` ON SCHEDULE EVERY 1 YEAR STARTS '2026-03-09 06:41:25' ON COMPLETION NOT PRESERVE ENABLE DO BEGIN
+    DELETE FROM prestamo
+    WHERE fecha_devolucion <= NOW() - INTERVAL 1 YEAR;
+    #datos menores a la fecha actual - 1 año
+END$$
+
+DELIMITER ;
 COMMIT;
 
 /*!40101 SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT */;
